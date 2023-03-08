@@ -37,7 +37,7 @@
 | **-**      | **11**   | **,**    | **23**   |
 | *****      | **12**   | **;**    | **24**   |
 
-![](C:\Users\eric1\Desktop\java\c_compiler\imgs\1.png)
+![](https://github.com/Eric-is-good/c_compiler/blob/main/imgs/1.png)
 
 但是我为了扩展性，分为了 6 类
 

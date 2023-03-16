@@ -49,3 +49,24 @@
 * 5表示界符
 * 6表示字符串
 ```
+
+
+
+### class 2 使用 javacc 生成词法分析器
+
+javacc [官网](https://javacc.github.io/javacc/)
+
+文档写的很好，关于教程，就用官方推荐的三个
+
+- JavaCC [tutorials](https://javacc.github.io/javacc/tutorials/).
+- [Introduction to JavaCC](https://www.engr.mun.ca/~theo/JavaCC-Tutorial/javacc-tutorial.pdf) by Theodore S. Norvell.
+- [Incorporating language processing into Java applications: a JavaCC tutorial](https://ieeexplore.ieee.org/document/1309649) by Viswanathan Kodaganallur.
+
+我大概思路是遍历两次，第一次查找以下两种错误：
+
+- 非法字符
+- 非法数字（多个小数点，数字+非数字）
+
+第二次再输出分词
+
+之所以要两次，是因为没有前缀后缀，非法数字无法识别，我又懒得搞匹配后又退回，多令牌机制也不想碰（叹气）

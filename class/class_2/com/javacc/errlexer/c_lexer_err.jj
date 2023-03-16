@@ -1,0 +1,224 @@
+options {
+    STATIC = false;
+    DEBUG_PARSER = false;
+    JDK_VERSION = "1.8";
+    UNICODE_INPUT=true;
+}
+
+PARSER_BEGIN(LexError)
+
+ package com.javacc.errlexer;
+ import java.io.FileInputStream;
+ import java.io.FileReader;
+ import java.io.FileNotFoundException;
+
+ public class LexError{
+   public static void test_lex_err(String args []){
+       FileInputStream FileStream = null;
+       try {
+           FileStream = new FileInputStream("c_code.c");
+       } catch (FileNotFoundException e) {
+           e.printStackTrace();
+       }
+
+       LexError ParserErr = new LexError(FileStream);
+
+       while (true){
+           try {
+               String res = ParserErr.err_check();
+               if (res.equals("EOF")) {System.out.println("Check ok !");break;}
+               else if (res.equals("false")) System.out.println("Check false ! (" + ParserErr.token.image + ")"
+               + " at line " + ParserErr.token.beginLine + " column " + ParserErr.token.beginColumn);
+           }catch (Exception e){
+               e.printStackTrace();
+           }
+       }
+
+   }
+ }
+ 
+ PARSER_END(LexError)
+ 
+ SKIP :
+ {
+   " "
+ | "\t"
+ | "\n"
+ | "\r"
+ | < "//" (~[ "\n", "\r" ])*
+     (
+       "\n"
+     | "\r"
+     | "\r\n"
+     ) >
+ | < "/*" (~[ "*" ])* "*"
+     (
+       ~[ "/" ] (~[ "*" ])* "*"
+     )*
+     "/" >
+ }
+ 
+ TOKEN : /* LITERALS */
+ {
+   < INTEGER_LITERAL :
+     < DECIMAL_LITERAL > ([ "l", "L" ])?
+   | < HEX_LITERAL > ([ "l", "L" ])?
+   | < OCTAL_LITERAL > ([ "l", "L" ])?
+     >
+ | < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >
+ | < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >
+ | < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >
+ }
+ 
+ TOKEN :
+ {
+   < CONSTANT :
+     (< DIGIT >)+
+     (
+       "." (< DIGIT >)+
+     )? >
+ }
+ 
+ TOKEN : /* KEYWORDS */
+ {
+   < MAIN : "main" >
+ | < INT : "int" >
+ | < RETURN :"return" >
+ | < IF:"if" >
+ | < ELSE:"else" >
+ | < VOID : "void" >
+ | < DOUBLE:"double" >
+ | < FLOAT:"float" >
+ | < WHILE:"while" >
+ | < DO:"do" >
+ | < FOR:"for" >
+ | < CHAR:"char" >
+ | < STRING:"string" >
+ | < BOOL:"bool" >
+ | < BREAK:"break" >
+ | < SWITCH:"switch" >
+ | < CASE:"case" >
+ | < DEFAULTS:"default" >
+ 
+ }
+ 
+ TOKEN: /*OPERATORS*/
+ {
+     < PLUS : "+" >
+ |   < MINUS : "-" >
+ |   < MULTIPLY : "*" >
+ |   < DIVIDE : "/" >
+ | < GD:">" >
+ | < LD:"<" >
+ | < SQRT:"^" >
+ | < EQ:"=" >
+ | < GE:">=" >
+ | < LE:"<=" >
+ | < EQQ:"==" >
+ | < NE:"!=" >
+ | < OR:"||" >
+ | < AND:"&&" >
+ }
+ TOKEN: /* SEPARATER */
+ {
+ < COMMA:"," >
+ | < SEMICOLON:";" >
+ | < LB:"(" >
+ | < RB:")" >
+ | < BLB:"{" >
+ | < BRB:"}" >
+ | < LBB:"[" >
+ | < RBB:"]" >
+ | < COLON:":" >
+ 
+ }
+
+ TOKEN : /* IDENTIFIERS */
+ {
+   < IDENTIFIER :
+     < LETTER >
+     (
+       < LETTER >
+     | < DIGIT >
+     )* >
+ | < #LETTER : [ "_", "a"-"z", "A"-"Z" ] >
+ | < #DIGIT : [ "0"-"9" ] >
+ }
+
+TOKEN : { /*String*/
+  < STRING_LITERAL : "\"" (~[ "\n", "\r", "\"" ])* "\"" >
+}
+
+TOKEN : { /*error*/
+  < ERROR : ~[" "] >
+  // 超过一个小数点的浮点数
+  | < ERROR_NUM : ( (< DIGIT >)+ "." (< DIGIT >)* ".") | ( < CONSTANT > <LETTER> ) | ( < DECIMAL_LITERAL > <LETTER> ) >
+}
+String err_check():
+{
+  Token token;
+  StringBuilder builder = new StringBuilder("Javacc Say :");
+}
+
+{
+    (token = < STRING_LITERAL > {return "ture";})*
+
+    (token = <ERROR_NUM> { return "false"; })*
+
+    (
+    (
+     token = < IDENTIFIER >
+    | token = < CONSTANT >
+    | token = < INTEGER_LITERAL >
+    | token = < MAIN >
+    | token = < INT >
+    | token = < RETURN >
+    | token = < IF >
+    | token = < ELSE >
+    | token = < VOID >
+    | token = < DOUBLE >
+    | token = < FLOAT >
+    | token = < WHILE >
+    | token = < DO >
+    | token = < FOR >
+    | token = < CHAR >
+    | token = < STRING >
+    | token = < BOOL >
+    | token = < BREAK >
+    | token = < SWITCH >
+    | token = < CASE >
+    | token = < DEFAULTS >
+    | token = < PLUS >
+    | token = < MINUS >
+    | token = < MULTIPLY >
+    | token = < DIVIDE >
+    | token = < GD >
+    | token = < LD >
+    | token = < SQRT >
+    | token = < EQ >
+    | token = < GE >
+    | token = < LE >
+    | token = < EQQ >
+    | token = < NE >
+    | token = < OR >
+    | token = < AND >
+    | token = < COMMA >
+    | token = < SEMICOLON >
+    | token = < LB >
+    | token = < RB >
+    | token = < BLB >
+    | token = < BRB >
+    | token = < LBB >
+    | token = < RBB >
+    | token = < COLON >
+
+    )
+    {return "ture";}
+    ) *
+
+    (<EOF> { return "EOF" ;}) *
+
+    <ERROR>  { return "false"; }
+
+}
+

@@ -4,34 +4,40 @@ import com.javacc.lexer.Lex;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import static com.javacc.lexer.LexConstants.tokenImage;
+
 public class lexer {
     public static void main(String[] args) {
         String file_name = "c_code.c";
         boolean good_file = new lexer().Check_no_err(file_name);
+
         if(good_file){
-            FileInputStream FileStream = null;
-            try {
-                FileStream = new FileInputStream(file_name);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-
-            Lex Parser = new Lex(FileStream);
-
-            while (true){
-                try {
-                    String res = Parser.next_word();
-                    if (res.equals("EOF")) break;
-                    System.out.println(res);
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-
+            new lexer().print_parser(file_name);
         }
     }
 
-    boolean Check_no_err(String file_name) {
+    public void print_parser(String file_name){
+        FileInputStream FileStream = null;
+        try {
+            FileStream = new FileInputStream(file_name);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Lex Parser = new Lex(FileStream);
+
+        while (true){
+            try {
+                com.javacc.utils.OneToken token = Parser.next_word();
+                if (token.kind == 0) break;
+                System.out.println(token.image + " " + tokenImage[token.kind]);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public boolean Check_no_err(String file_name) {
         FileInputStream FileStream = null;
         try {
             FileStream = new FileInputStream(file_name);

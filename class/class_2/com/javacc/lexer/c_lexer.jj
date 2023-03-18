@@ -8,33 +8,34 @@ options {
 PARSER_BEGIN(Lex)
 
  package com.javacc.lexer;
- import java.io.FileInputStream;
- import java.io.FileReader;
- import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.FileNotFoundException;
+import com.javacc.utils.OneToken;
 
- public class Lex{
-   public static void test_lex(String args []){
-       FileInputStream FileStream = null;
-       try {
-           FileStream = new FileInputStream("c_code.c");
-       } catch (FileNotFoundException e) {
-           e.printStackTrace();
-       }
+public class Lex{
+  public static void test_lex(String args []){
+      FileInputStream FileStream = null;
+      try {
+          FileStream = new FileInputStream("c_code.c");
+      } catch (FileNotFoundException e) {
+          e.printStackTrace();
+      }
 
-       Lex Parser = new Lex(FileStream);
+      Lex Parser = new Lex(FileStream);
 
-       while (true){
-           try {
-               String res = Parser.next_word();
-                if (res.equals("EOF")) break;
-               System.out.println(res);
-           }catch (Exception e){
-               e.printStackTrace();
-           }
-       }
+      while (true){
+          try {
+              com.javacc.utils.OneToken token = Parser.next_word();
+               if (token.kind == 0) break;
+              System.out.println(token.image + " " + tokenImage[token.kind]);
+          }catch (Exception e){
+              e.printStackTrace();
+          }
+      }
 
-   }
- }
+  }
+}
  
  PARSER_END(Lex)
  
@@ -149,10 +150,10 @@ TOKEN : { /*String*/
 }
 
 
-String next_word():
+OneToken next_word():
 {
-  Token token;
-  StringBuilder builder = new StringBuilder("Javacc Say :");
+  Token token = new Token();
+  OneToken oneToken = new OneToken();
 }
 
 {
@@ -206,12 +207,17 @@ String next_word():
     )
 
     {
-        builder.append(" " + token.image);
-        return builder.toString();
+        oneToken.image = token.image;
+        oneToken.kind = token.kind;
+        return oneToken;
     }
     ) *
 
-    <EOF> { return "EOF" ; }
+    <EOF> {
+            oneToken.image = token.image;
+            oneToken.kind = token.kind;
+            return oneToken;
+          }
 
 }
 

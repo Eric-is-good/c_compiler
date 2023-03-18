@@ -4,6 +4,7 @@ package com.javacc.lexer;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileNotFoundException;
+import com.javacc.utils.OneToken;
 
 /** Token Manager. */
 @SuppressWarnings ("unused")

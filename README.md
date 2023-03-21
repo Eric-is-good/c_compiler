@@ -70,3 +70,21 @@ javacc [官网](https://javacc.github.io/javacc/)
 第二次再输出分词
 
 之所以要两次，是因为没有前缀后缀，非法数字无法识别，我又懒得搞匹配后又退回，多令牌机制也不想碰（叹气）
+
+
+
+### class 3 使用语法分析器分析一个小程序（无代码）
+
+c- 语法书在 class_3 里面，老师要我们用飞书画思维导图，也就是那个语法树（飞书打钱）
+
+```c
+void main(){
+	return;
+}
+```
+
+得到这样的语法树
+
+[思维导图](https://uestc.feishu.cn/mindnotes/bmncnx6rCky2aSf2f9GXDlaXBHd)
+
+![](https://github.com/Eric-is-good/c_compiler/blob/main/class/class_3/program.png)

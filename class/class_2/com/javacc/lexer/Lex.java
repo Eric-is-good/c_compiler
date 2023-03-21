@@ -7,27 +7,27 @@ import java.io.FileNotFoundException;
 import com.javacc.utils.OneToken;
 
 public class Lex implements LexConstants {
-//  public static void main(String args []){
-//      FileInputStream FileStream = null;
-//      try {
-//          FileStream = new FileInputStream("c_code.c");
-//      } catch (FileNotFoundException e) {
-//          e.printStackTrace();
-//      }
-//
-//      Lex Parser = new Lex(FileStream);
-//
-//      while (true){
-//          try {
-//              com.javacc.utils.OneToken token = Parser.next_word();
-//               if (token.kind == 0) break;
-//              System.out.println(token.image + " " + tokenImage[token.kind]);
-//          }catch (Exception e){
-//              e.printStackTrace();
-//          }
-//      }
-//
-//  }
+  public static void test_lex(String args []){
+      FileInputStream FileStream = null;
+      try {
+          FileStream = new FileInputStream("c_code.c");
+      } catch (FileNotFoundException e) {
+          e.printStackTrace();
+      }
+
+      Lex Parser = new Lex(FileStream);
+
+      while (true){
+          try {
+              com.javacc.utils.OneToken token = Parser.next_word();
+               if (token.kind == 0) break;
+              System.out.println(token.image + " " + tokenImage[token.kind]);
+          }catch (Exception e){
+              e.printStackTrace();
+          }
+      }
+
+  }
 
   final public OneToken next_word() throws ParseException {Token token = new Token();
   OneToken oneToken = new OneToken();
@@ -78,6 +78,7 @@ public class Lex implements LexConstants {
       case RBB:
       case COLON:
       case IDENTIFIER:
+      case INCLUDE_FILE:
       case STRING_LITERAL:{
         ;
         break;
@@ -87,6 +88,10 @@ public class Lex implements LexConstants {
         break label_1;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case INCLUDE_FILE:{
+        token = jj_consume_token(INCLUDE_FILE);
+        break;
+        }
       case IDENTIFIER:{
         token = jj_consume_token(IDENTIFIER);
         break;
@@ -303,7 +308,7 @@ oneToken.image = token.image;
 	   jj_la1_0 = new int[] {0xfffff880,0xfffff880,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x13fffff,0x13fffff,};
+	   jj_la1_1 = new int[] {0x33fffff,0x33fffff,};
 	}
 
   /** Constructor with InputStream. */
@@ -428,7 +433,7 @@ oneToken.image = token.image;
   /** Generate ParseException. */
   public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[57];
+	 boolean[] la1tokens = new boolean[58];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
@@ -445,7 +450,7 @@ oneToken.image = token.image;
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 57; i++) {
+	 for (int i = 0; i < 58; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;

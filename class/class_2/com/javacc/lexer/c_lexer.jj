@@ -41,7 +41,7 @@ public class Lex{
  
  SKIP :
  {
-   " "
+ " "
  | "\t"
  | "\n"
  | "\r"
@@ -143,6 +143,7 @@ public class Lex{
      )* >
  | < #LETTER : [ "_", "a"-"z", "A"-"Z" ] >
  | < #DIGIT : [ "0"-"9" ] >
+ | <INCLUDE_FILE : "#include" (" ")* ["<", "\""] (~[ "\n", "\r", "\"" ])* (" ")* [">", "\""] >
  }
 
 TOKEN : { /*String*/
@@ -157,9 +158,11 @@ OneToken next_word():
 }
 
 {
+
     (
     (
-    token = < IDENTIFIER >
+    token = < INCLUDE_FILE >
+    | token = < IDENTIFIER >
     | token = < CONSTANT >
     | token = < INTEGER_LITERAL >
     | token = < MAIN >

@@ -109,7 +109,9 @@ public interface LexConstants {
   /** RegularExpression Id. */
   int DIGIT = 55;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 56;
+  int INCLUDE_FILE = 56;
+  /** RegularExpression Id. */
+  int STRING_LITERAL = 57;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -172,6 +174,7 @@ public interface LexConstants {
     "<IDENTIFIER>",
     "<LETTER>",
     "<DIGIT>",
+    "<INCLUDE_FILE>",
     "<STRING_LITERAL>",
   };
 

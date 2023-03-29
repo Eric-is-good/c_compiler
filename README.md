@@ -88,3 +88,30 @@ void main(){
 [思维导图](https://uestc.feishu.cn/mindnotes/bmncnx6rCky2aSf2f9GXDlaXBHd)
 
 ![](https://github.com/Eric-is-good/c_compiler/blob/main/class/class_3/program.png)
+
+
+
+### class 4 实现 c- 的词法与语法分析器
+
+我们使用 [antlr 4](https://www.antlr.org/)，我感觉可能要抛弃 javacc ？
+
+关于 [**解决左递归**](https://stackoverflow.com/questions/2999755/removing-left-recursion-in-antlr)
+
+我们实现的 c- 语法解析器实现效果（按照 c- 语法书）
+
+```c
+int main(int args[]){
+    int a;
+    a = 6;
+    a = a+10;
+    if(a>9){
+        return a;
+    }else{
+        int b;
+        b = a * a;
+    }
+}
+```
+
+![](https://github.com/Eric-is-good/c_compiler/blob/main/class/class_4/antlr4_parse_tree.png)
+

@@ -1,0 +1,13 @@
+    int main(int args[]){
+        int a;
+        a = 6;
+        a = a+10;
+        if(a>9){
+            return a;
+        }else{
+            int b;
+            b = a * a;
+        }
+    }
+
+javac -cp /usr/local/lib/antlr-4.12.0-complete.jar miniC*.java

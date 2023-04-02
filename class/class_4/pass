@@ -10,4 +10,6 @@
         }
     }
 
-javac -cp /usr/local/lib/antlr-4.12.0-complete.jar miniC*.java
+antlr4 -package paser -visitor miniC.g4
+grun miniC program -gui
+javac -cp /usr/local/lib/antlr-4.9-complete.jar miniC*.java

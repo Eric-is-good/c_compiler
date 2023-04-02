@@ -73,6 +73,31 @@ javacc [官网](https://javacc.github.io/javacc/)
 
 
 
+### class 2 plus 使用 javacc 预处理
+
+多文件编译时，使用递归处理 include 文件。
+
+果然，菜鸡（指我）都喜欢递归。
+
+我们的思路是深度优先，因为程序就是一棵树（以主函数为根节点），我们先使用递归进入下一层，最后再添加本结点内容，这样可以使被调用程序代码在调用代码之前被添加，我们最后把所有文件合成一个大字符串。
+
+```java
+// 伪代码
+find_include(path){
+   while(true){
+       word = next_word(); // 打开文件，读入本文件下一个词语
+       if word == <EOF>：
+           break;
+       if word == #include "path_xx"：
+           find_include(path_xx);    // 递归
+       if word == programe:          //如果读到代码
+           total_content.add(word);
+   }
+}
+```
+
+
+
 ### class 3 使用语法分析器分析一个小程序（无代码）
 
 c- 语法书在 class_3 里面，老师要我们用飞书画思维导图，也就是那个语法树（飞书打钱）
@@ -115,3 +140,10 @@ int main(int args[]){
 
 ![](https://github.com/Eric-is-good/c_compiler/blob/main/class/class_4/antlr4_parse_tree.png)
 
+
+
+### class 5 初识比赛
+
+比赛需要实现一个语言 SysY2022 ，文档在 class_5/SysY2022 下。
+
+我们先实现他的  lexer 和 parser 部分

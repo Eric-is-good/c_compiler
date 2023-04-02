@@ -1,0 +1,138 @@
+options {
+    STATIC = false;
+    DEBUG_PARSER = false;
+    JDK_VERSION = "1.8";
+    UNICODE_INPUT=true;
+}
+
+PARSER_BEGIN(preProcess)
+
+ package preProcess;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+ import utils.OneToken;
+ import java.util.ArrayList;
+
+public class preProcess{
+
+  public static String MultiLineComment = "";
+  public static ArrayList<String> includeFiles = new ArrayList<String>();
+
+  public static void test_pre(String[] args){
+      String path = "c/c_code.c";
+      find_include_files(path);
+
+      for (String includeFile : includeFiles) {
+                System.out.println(includeFile);
+            }
+
+      System.out.println(MultiLineComment);
+
+  }
+
+  public static void find_include_files(String path){
+        String base_path = path.substring(0, path.lastIndexOf("/"));
+
+        FileInputStream FileStream = null;
+        try {
+            FileStream = new FileInputStream(path);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        preProcess parser = new preProcess(FileStream);
+
+        while (true){
+                  try {
+                      OneToken token = parser.next_word();
+                       if (token.kind == -1) break;
+                       if (token.kind == 1){
+                           String include_file = include_cut(token.image);
+                           includeFiles.add(base_path + "/" + include_file);
+                           find_include_files(base_path + "/" + include_file);
+                       }
+                       if (token.kind == 0){
+                           MultiLineComment += "\n";
+                           MultiLineComment += token.image;
+                       }
+                  }catch (Exception e){
+                      e.printStackTrace();
+                  }
+        }
+
+  }
+
+  public static String include_cut(String str){
+      int front = 0;
+      int back = 0;
+      for (int i = 0; i < str.length(); i++){
+              if (str.charAt(i) == '\"' || str.charAt(i) == '<'){
+                  front = i;
+                  break;
+              }
+          }
+          for (int i = str.length() - 1; i >= 0; i--){
+              if (str.charAt(i) == '\"' || str.charAt(i) == '>'){
+                  back = i;
+                  break;
+              }
+          }
+            return str.substring(front + 1, back);
+  }
+}
+
+
+ PARSER_END(preProcess)
+
+SKIP :
+ {
+ " "
+ | "\t"
+ | "\n"
+ | "\r"
+ | < "//" (~[ "\n", "\r" ])*
+     (
+       "\n"
+     | "\r"
+     | "\r\n"
+     ) >
+ | < "/*" (~[ "*" ])* "*"
+     (
+       ~[ "/" ] (~[ "*" ])* "*"
+     )*
+     "/" >
+ }
+
+TOKEN : /* IDENTIFIERS */
+ {
+    <INCLUDE_FILE : "#include" (" ")* ["<", "\""] (~[ "\n", "\r", "\"" ])* (" ")* [">", "\""] >
+  | <ANY_THING : (~[ "\n", "\r"])*>
+ }
+
+OneToken next_word():
+{
+       Token token = new Token();
+       OneToken oneToken = new OneToken();
+}
+
+{
+   (token=<INCLUDE_FILE>
+   {
+    oneToken.image = token.image;
+    oneToken.kind = 1;
+    return oneToken;}
+    )*
+
+    (token= <ANY_THING>
+    {oneToken.image = token.image;
+     oneToken.kind = 0;
+     return oneToken;}
+    )*
+
+    <EOF> {
+           oneToken.image = token.image;
+           oneToken.kind = -1;
+           return oneToken;
+          }
+}
+

@@ -142,8 +142,29 @@ int main(int args[]){
 
 
 
-### class 5 初识比赛
+### class 5 语义分析
 
 比赛需要实现一个语言 SysY2022 ，文档在 class_5/SysY2022 下。
 
-我们先实现他的  lexer 和 parser 部分
+从现在开始，我们使用 java 17 来匹配比赛要求。
+
+我们先实现他的  lexer 和 parser 部分，生成对应的 antlr visitor。
+
+接下来是重中之重，**建立符号表** 和 **语法制导翻译**。
+
+1. 重构语法树
+
+   我们需要在树的节点里面添加一些属性，例如该节点的代码，属性等等，因此，我们自定义了树节点 Node。同时，我们通过 antlr visit 这棵树，拿到了他的拓扑排序，方便我们**自底向上**的遍历这颗树生成中间代码。
+
+   ```java
+   // full_tree = hash_tree + leaf
+   
+   public ArrayList<Integer> tree_nodes = new ArrayList<>();   // hashcode 树的拓扑排序
+   public HashMap<Integer,ParseTree> full_tree = new HashMap<>();   // 因为 tree_nodes 没有叶子节点
+   public ArrayList<Integer> leaf = new ArrayList<>();         // 叶子节点
+   public HashMap<Integer,Node> hash_tree = new HashMap<>();   // hash 树
+   ```
+
+   
+
+2. 

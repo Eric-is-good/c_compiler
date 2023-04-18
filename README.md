@@ -142,6 +142,22 @@ int main(int args[]){
 
 
 
+
+
+### class 5  预备知识 LLVM IR
+
+我们的前端目标是生成 LLVM IR，[这里](https://github.com/Evian-Zhang/llvm-ir-tutorial) 有一个简单教程。
+
+[LLVM 地址](https://github.com/llvm/llvm-project)
+
+有关 LLVM IR 的资料我放在了 **class_5（预备知识）**里面。
+
+![](https://img2.baidu.com/it/u=983554491,2158979956&fm=253&fmt=auto&app=138&f=JPEG?w=558&h=206)
+
+
+
+
+
 ### class 5 语义分析
 
 比赛需要实现一个语言 SysY2022 ，文档在 class_5/SysY2022 下。
@@ -152,19 +168,46 @@ int main(int args[]){
 
 接下来是重中之重，**建立符号表** 和 **语法制导翻译**。
 
-1. 重构语法树
+1. 构建语法树
+
+   注意到 SysY 中的 LVal ，我们为了区分，引入了 rVal。
+
+   它可以出现在很多地方, 用作不同的用途. 更具体地说, 它可以有三个用法:
+
+   1. 用作定义/声明: 如出现在函数形参/数组定义中
+
+   2. 用作左值: 如出现在赋值语句左边
+
+   3. 用作右值: 如出现在表达式中
+
+      
+
+   
+
+2. 重构语法树
 
    我们需要在树的节点里面添加一些属性，例如该节点的代码，属性等等，因此，我们自定义了树节点 Node。同时，我们通过 antlr visit 这棵树，拿到了他的拓扑排序，方便我们**自底向上**的遍历这颗树生成中间代码。
 
    ```java
-   // full_tree = hash_tree + leaf
+   // full_tree = hash_tree + leaves
+   public HashMap<Integer,ParseTree> full_tree = new HashMap<>();   // 完整的树
+   public ArrayList<Integer> tree_TSort = new ArrayList<>();   // full_tree 树的拓扑排序
    
-   public ArrayList<Integer> tree_nodes = new ArrayList<>();   // hashcode 树的拓扑排序
-   public HashMap<Integer,ParseTree> full_tree = new HashMap<>();   // 因为 tree_nodes 没有叶子节点
-   public ArrayList<Integer> leaf = new ArrayList<>();         // 叶子节点
-   public HashMap<Integer,Node> hash_tree = new HashMap<>();   // hash 树
+   public HashMap<Integer,Node> hash_tree = new HashMap<>();   // hash 树 （不含叶子节点）
+   public ArrayList<Integer> leaves = new ArrayList<>();         // 叶子节点
+   public Queue<ParseTree> tree_nodes_q = new LinkedList<>();
+   ```
+
+   在 visit 构建树的同时，我们构建了迭代的空符号表
+
+   ```java
+   public Integer visitBlock(SysYParser.BlockContext ctx) {
+           。。。。
+           symbol_tables.put(table.hashCode(), table);   // 添加符号表
+           。。。。
+       }
    ```
 
    
 
-2. 
+2. 从子节点生成代码和符号表

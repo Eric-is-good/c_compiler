@@ -24,6 +24,10 @@ public class Hello {
         Visitor visitor = new Visitor(module);
         // Traversal the ast to build the IR.
         visitor.visit(ast);
+
+        /* Emit the IR text to an output file for testing. */
+        IREmitter emitter = new IREmitter("test_syys/1.ll");
+        emitter.emit(module, true);
     }
 
 }

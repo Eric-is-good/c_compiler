@@ -6,15 +6,23 @@
 
 该**比赛**为 [全国大学生计算机系统能力大赛 ](https://compiler.educg.net)的系统编译方向，由华为主办
 
-由于比赛可以用 java ~~（可惜不能用 python）~~，所以就选择了 java，这样可以专注于指令优化
+由于比赛可以用 java ~~(可惜不能用 python)~~，所以就选择了 java，这样可以专注于指令优化
 
-老师上课用的 c++，我用 java 重写一遍
+我们主要目的是学习，~~不是为了拿奖~~，因为我们到处借鉴别人的代码......    @_@
+
+
 
 
 
 ## 内容
 
-分为两个部分，上课代码和完整的编译器代码，老师提供了 c++ 代码，我重写的 java
+根据我的学习进度，分课程的记录学习进度。在 class 文件夹里面，有每一课的学习内容。
+
+我们借鉴了 [这个代码](https://github.com/cabinz/cbias) ，并以此为模板学习。感谢大佬们的开源。
+
+比赛官方也有开源代码学习，我们也可以看看他们的。
+
+如果你想**直接进入比赛相关内容**，建议从 class 4 开始看。
 
 
 
@@ -73,7 +81,7 @@ javacc [官网](https://javacc.github.io/javacc/)
 
 
 
-### class 2 plus 使用 javacc 预处理
+### class 2 plus 使用 javacc 多文件预处理
 
 多文件编译时，使用递归处理 include 文件。
 
@@ -144,7 +152,7 @@ int main(int args[]){
 
 
 
-### class 5  预备知识 LLVM IR
+### class 5  预备知识 LLVM
 
 我们的前端目标是生成 LLVM IR，[这里](https://github.com/Evian-Zhang/llvm-ir-tutorial) 有一个简单教程。
 
@@ -154,60 +162,69 @@ int main(int args[]){
 
 ![](https://img2.baidu.com/it/u=983554491,2158979956&fm=253&fmt=auto&app=138&f=JPEG?w=558&h=206)
 
+有关 LLVM 的书籍 [Learn LLVM 12](https://download.packt.com/free-ebook/9781839213502) 我也放在了文件夹里。
 
 
 
-
-### class 5 语义分析
+### class 5 语义分析与生成  LLVM IR
 
 比赛需要实现一个语言 SysY2022 ，文档在 class_5/SysY2022 下。
 
 从现在开始，我们使用 java 17 来匹配比赛要求。
 
-我们先实现他的  lexer 和 parser 部分，生成对应的 antlr visitor。
+**学习别人的代码**使我们进步，我们以 [该代码](https://github.com/cabinz/cbias) 为模板，进行学习。
 
-接下来是重中之重，**建立符号表** 和 **语法制导翻译**。
+1. paser 和 lexer 直接 antlr 生成，官方有指导书，我们就直接用了别人的 g4 文件。在 class_5/src/frontend 下。重点在于 visitor 的代码。visit 一遍后，生成  in-memory IR 。
+2. llvm ir 中，每个文件会生成一个 module，因此我们做了装载 IR 的 module 类，在  class_5/src/ir 下。
+3. 将 in-memory IR 输出，我们有一个 IREmitter 类，在 class_5/src/frontend 下。
 
-1. 构建语法树
+这便是我们生成中间代码的主框架
 
-   注意到 SysY 中的 LVal ，我们为了区分，引入了 rVal。
+```java
+// 1.sy -> 1.ll
+public static void main(String[] args) throws Exception{
+        CharStream inputFile = CharStreams.fromFileName("test_syys/1.sy");
 
-   它可以出现在很多地方, 用作不同的用途. 更具体地说, 它可以有三个用法:
+        /* Lexical analysis */
+        SysYLexer lexer = new SysYLexer(inputFile);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
 
-   1. 用作定义/声明: 如出现在函数形参/数组定义中
+        /* Parsing */
+        SysYParser parser = new SysYParser(tokenStream);
+        ParseTree ast = parser.compUnit(); 
 
-   2. 用作左值: 如出现在赋值语句左边
+        /* Intermediate code generation */
+        // Initialized all the container and tools.
+        Module module = new Module();
+        Visitor visitor = new Visitor(module);
+        // Traversal the ast to build the IR.
+        visitor.visit(ast);
 
-   3. 用作右值: 如出现在表达式中
+        /* Emit the IR text to an output file for testing. */
+        IREmitter emitter = new IREmitter("test_syys/1.ll");
+        emitter.emit(module, true);
+    }
+```
 
-      
+接下来讲讲我学习到的东西
 
-   
 
-2. 重构语法树
 
-   我们需要在树的节点里面添加一些属性，例如该节点的代码，属性等等，因此，我们自定义了树节点 Node。同时，我们通过 antlr visit 这棵树，拿到了他的拓扑排序，方便我们**自底向上**的遍历这颗树生成中间代码。
+#### 入侵式链表
 
-   ```java
-   // full_tree = hash_tree + leaves
-   public HashMap<Integer,ParseTree> full_tree = new HashMap<>();   // 完整的树
-   public ArrayList<Integer> tree_TSort = new ArrayList<>();   // full_tree 树的拓扑排序
-   
-   public HashMap<Integer,Node> hash_tree = new HashMap<>();   // hash 树 （不含叶子节点）
-   public ArrayList<Integer> leaves = new ArrayList<>();         // 叶子节点
-   public Queue<ParseTree> tree_nodes_q = new LinkedList<>();
-   ```
+在 class_5\src\utils 里面，实现的就是这个具有通用性的链表。
 
-   在 visit 构建树的同时，我们构建了迭代的空符号表
+传统链表
 
-   ```java
-   public Integer visitBlock(SysYParser.BlockContext ctx) {
-           。。。。
-           symbol_tables.put(table.hashCode(), table);   // 添加符号表
-           。。。。
-       }
-   ```
+![](https://img-blog.csdnimg.cn/8e9baf611c4949dc824cfa593a43f6f8.png)
 
-   
+入侵式链表
 
-2. 从子节点生成代码和符号表
+![](https://img-blog.csdnimg.cn/ae71e460f11249e2a85eaef1eb1a698c.png)
+
+我们的实现方式
+
+![](https://github.com/Eric-is-good/c_compiler/blob/main/imgs/instrusive.png)
+
+
+

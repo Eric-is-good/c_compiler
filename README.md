@@ -154,15 +154,21 @@ int main(int args[]){
 
 ### class 5  预备知识 LLVM
 
-我们的前端目标是生成 LLVM IR，[这里](https://github.com/Evian-Zhang/llvm-ir-tutorial) 有一个简单教程。
-
-[LLVM 地址](https://github.com/llvm/llvm-project)
-
-有关 LLVM IR 的资料我放在了 **class_5（预备知识）**里面。
+有关 LLVM 的资料我放在了 **class_5（预备知识）**里面。
 
 ![](https://img2.baidu.com/it/u=983554491,2158979956&fm=253&fmt=auto&app=138&f=JPEG?w=558&h=206)
 
-有关 LLVM 的书籍 [Learn LLVM 12](https://download.packt.com/free-ebook/9781839213502) 我也放在了文件夹里。
+1. [什么是 SSA](https://blog.csdn.net/qq_29674357/article/details/78731713)  (注意 Φ函数插入算法 和 重命名算法)
+
+1. [支配边界](https://www.zhihu.com/question/293748348/answer/2764418983)
+
+2. 我们的前端目标是生成 LLVM IR，[什么是 LLVM IR](https://github.com/Evian-Zhang/llvm-ir-tutorial) 
+
+2. [IR 的设计](https://blog.csdn.net/fs3296/article/details/127853336)
+
+3. 有关 LLVM 的书籍 [Learn LLVM 12](https://download.packt.com/free-ebook/9781839213502) 我也放在了文件夹里。
+
+   [LLVM 地址](https://github.com/llvm/llvm-project)
 
 
 
@@ -228,3 +234,75 @@ public static void main(String[] args) throws Exception{
 
 
 
+#### IR 的构成
+
+```c
+├───ir
+│   │   Module.java
+│   │   Type.java
+│   │   Use.java
+│   │   User.java
+│   │   Value.java
+│   │
+│   ├───types
+│   │       ArrayType.java
+│   │       FloatType.java
+│   │       FunctionType.java
+│   │       IntegerType.java
+│   │       LabelType.java
+│   │       PointerType.java
+│   │       VoidType.java
+│   │
+│   └───values
+│       │   BasicBlock.java
+│       │   Constant.java
+│       │   Function.java
+│       │   GlobalVariable.java
+│       │   Instruction.java
+│       │
+│       ├───constants
+│       │       ConstArray.java
+│       │       ConstFloat.java
+│       │       ConstInt.java
+│       │
+│       └───instructions
+│               BinaryOpInst.java
+│               CallInst.java
+│               CastInst.java
+│               GetElemPtrInst.java
+│               MemoryInst.java
+│               PhiInst.java
+│               TerminatorInst.java
+│               UnaryOpInst.java
+```
+
+- Value类，Value是一个非常基础的基类，一个继承于Value的子类表示它的结果可以被其他地方使用。在我们的实现中 Use 作为 Value 和 User 的桥梁。
+
+- User类，一个继承于User的类表示它会使用一个或多个Value对象。
+
+- Type类，所有 type 继承于此，不同的 type 有其自己独特的属性。在 types 文件夹里面。
+
+- 基于 Value 类还有 User 类，我们实现了从指令集类到代码再到函数的类，在 values 里面。通过继承迭代器，Function 迭代 BasicBlock，BasicBlock 迭代 Instruction。
+
+- Instruction 抽象类，tag 表示指令类型。所有 instruction 继承于它，在 instructions 文件夹里面。
+
+  
+
+- Module类，Module可以理解为一个完整的编译单元。一般来说，这个编译单元就是一个源码文件，如一个后缀为cpp的源文件。
+- Function类，这个类顾名思义就是对应于一个函数单元。Function可以描述两种情况，分别是函数定义和函数声明。
+- BasicBlock类，这个类表示一个基本代码块，“基本代码块”就是一段没有控制流逻辑的基本流程，相当于程序流程图中的基本过程（矩形表示）。
+- Instruction类，指令类就是LLVM中定义的基本操作，比如加减乘除这种算数指令、函数调用指令、跳转指令、返回指令等等。
+
+
+
+
+
+### class 6  Visitor 生成 IR
+
+
+
+
+
+
+
+### class 7  Mem 2 Reg

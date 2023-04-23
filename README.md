@@ -172,49 +172,9 @@ int main(int args[]){
 
 
 
-### class 5 语义分析与生成  LLVM IR
-
-比赛需要实现一个语言 SysY2022 ，文档在 class_5/SysY2022 下。
-
-从现在开始，我们使用 java 17 来匹配比赛要求。
+### class 5   LLVM IR 的实现
 
 **学习别人的代码**使我们进步，我们以 [该代码](https://github.com/cabinz/cbias) 为模板，进行学习。
-
-1. paser 和 lexer 直接 antlr 生成，官方有指导书，我们就直接用了别人的 g4 文件。在 class_5/src/frontend 下。重点在于 visitor 的代码。visit 一遍后，生成  in-memory IR 。
-2. llvm ir 中，每个文件会生成一个 module，因此我们做了装载 IR 的 module 类，在  class_5/src/ir 下。
-3. 将 in-memory IR 输出，我们有一个 IREmitter 类，在 class_5/src/frontend 下。
-
-这便是我们生成中间代码的主框架
-
-```java
-// 1.sy -> 1.ll
-public static void main(String[] args) throws Exception{
-        CharStream inputFile = CharStreams.fromFileName("test_syys/1.sy");
-
-        /* Lexical analysis */
-        SysYLexer lexer = new SysYLexer(inputFile);
-        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-
-        /* Parsing */
-        SysYParser parser = new SysYParser(tokenStream);
-        ParseTree ast = parser.compUnit(); 
-
-        /* Intermediate code generation */
-        // Initialized all the container and tools.
-        Module module = new Module();
-        Visitor visitor = new Visitor(module);
-        // Traversal the ast to build the IR.
-        visitor.visit(ast);
-
-        /* Emit the IR text to an output file for testing. */
-        IREmitter emitter = new IREmitter("test_syys/1.ll");
-        emitter.emit(module, true);
-    }
-```
-
-接下来讲讲我学习到的东西
-
-
 
 #### 入侵式链表
 
@@ -282,7 +242,7 @@ public static void main(String[] args) throws Exception{
 
 - Type类，所有 type 继承于此，不同的 type 有其自己独特的属性。在 types 文件夹里面。
 
-- 基于 Value 类还有 User 类，我们实现了从指令集类到代码再到函数的类，在 values 里面。通过继承迭代器，Function 迭代 BasicBlock，BasicBlock 迭代 Instruction。
+- 基于 Value 类 和 User 类，我们实现了从指令集类到代码再到函数的类，在 values 里面。通过继承迭代器，Function 迭代 BasicBlock，BasicBlock 迭代 Instruction。
 
 - Instruction 抽象类，tag 表示指令类型。所有 instruction 继承于它，在 instructions 文件夹里面。
 
@@ -291,15 +251,61 @@ public static void main(String[] args) throws Exception{
 - Module类，Module可以理解为一个完整的编译单元。一般来说，这个编译单元就是一个源码文件，如一个后缀为cpp的源文件。
 - Function类，这个类顾名思义就是对应于一个函数单元。Function可以描述两种情况，分别是函数定义和函数声明。
 - BasicBlock类，这个类表示一个基本代码块，“基本代码块”就是一段没有控制流逻辑的基本流程，相当于程序流程图中的基本过程（矩形表示）。
-- Instruction类，指令类就是LLVM中定义的基本操作，比如加减乘除这种算数指令、函数调用指令、跳转指令、返回指令等等。
+- Instruction类，指令类就是LLVM中定义的基本操作，比如加减乘除这种算数指令、函数调用指令、跳转指令、返回指令等等。指令中每个变量是个 Value。
 
 
 
+### class 6  语义分析  和  生成中间代码（代码依旧 class 5）
 
+比赛需要实现一个语言 SysY2022 ，文档在 class_5/SysY2022 下。
 
-### class 6  Visitor 生成 IR
+从现在开始，我们使用 java 17 来匹配比赛要求。
 
+1. paser 和 lexer 直接 antlr 生成，官方有指导书，我们就直接用了别人的 g4 文件。在 class_5/src/frontend 下。重点在于 visitor 的代码。visit 一遍后，生成  in-memory IR 。
+2. llvm ir 中，在  class_5/src/ir 下实现。
+3. 将 in-memory IR 输出，我们有一个 IREmitter 类，在 class_5/src/frontend 下。
 
+这便是我们生成中间代码的主框架
+
+```java
+// 1.sy -> 1.ll
+public static void main(String[] args) throws Exception{
+        CharStream inputFile = CharStreams.fromFileName("test_syys/1.sy");
+
+        /* Lexical analysis */
+        SysYLexer lexer = new SysYLexer(inputFile);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+
+        /* Parsing */
+        SysYParser parser = new SysYParser(tokenStream);
+        ParseTree ast = parser.compUnit(); 
+
+        /* Intermediate code generation */
+        // Initialized all the container and tools.
+        Module module = new Module();
+        Visitor visitor = new Visitor(module);
+        // Traversal the ast to build the IR.
+        visitor.visit(ast);
+
+        /* Emit the IR text to an output file for testing. */
+        IREmitter emitter = new IREmitter("test_syys/1.ll");
+        emitter.emit(module, true);
+    }
+```
+
+而本章的重点在于 frontend 里面的 IRBuilder 和 Visitor。
+
+```c
+├───frontend
+│       IRBuilder.java
+│       IREmitter.java
+│       Scope.java
+│       SysYBaseVisitor.java
+│       SysYLexer.java
+│       SysYParser.java
+│       SysYVisitor.java
+│       Visitor.java
+```
 
 
 

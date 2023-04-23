@@ -1,7 +1,11 @@
+int aa[6][3] = {{},{1,1,1}};
+
 int add(int a,int b){return a+b;}
 
 int main() {
     int a = 1, b = 2;
     a = getint();
     add(a,b);
+    float c = 1.0;
+    c = c + aa[5][2];
 }

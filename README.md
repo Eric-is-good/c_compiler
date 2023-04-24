@@ -146,7 +146,7 @@ int main(int args[]){
 }
 ```
 
-![](https://github.com/Eric-is-good/c_compiler/blob/main/class/class_4/antlr4_parse_tree.png)
+[图片地址](https://github.com/Eric-is-good/c_compiler/blob/main/class/class_4/antlr4_parse_tree.png)
 
 
 
@@ -255,15 +255,15 @@ int main(int args[]){
 
 
 
-### class 6  语义分析  和  生成中间代码（代码依旧 class 5）
+### class 6  语义分析  和  生成中间代码
 
-比赛需要实现一个语言 SysY2022 ，文档在 class_5/SysY2022 下。
+比赛需要实现一个语言 SysY2022 ，文档在 class_6/SysY2022 下。
 
 从现在开始，我们使用 java 17 来匹配比赛要求。
 
-1. paser 和 lexer 直接 antlr 生成，官方有指导书，我们就直接用了别人的 g4 文件。在 class_5/src/frontend 下。重点在于 visitor 的代码。visit 一遍后，生成  in-memory IR 。
-2. llvm ir 中，在  class_5/src/ir 下实现。
-3. 将 in-memory IR 输出，我们有一个 IREmitter 类，在 class_5/src/frontend 下。
+1. paser 和 lexer 直接 antlr 生成，官方有指导书，我们就直接用了别人的 g4 文件。在 class_6/src/frontend 下。重点在于 visitor 的代码。visit 一遍后，生成  in-memory IR 。
+2. llvm ir 中，在  class_6/src/ir 下，在上节课实现。
+3. 将 in-memory IR 输出，我们有一个 IREmitter 类，在 class_6/src/frontend 下。
 
 这便是我们生成中间代码的主框架
 
@@ -282,7 +282,7 @@ public static void main(String[] args) throws Exception{
 
         /* Intermediate code generation */
         // Initialized all the container and tools.
-        Module module = new Module();
+        Module module = new Module();    // last class
         Visitor visitor = new Visitor(module);
         // Traversal the ast to build the IR.
         visitor.visit(ast);
@@ -293,19 +293,78 @@ public static void main(String[] args) throws Exception{
     }
 ```
 
-而本章的重点在于 frontend 里面的 IRBuilder 和 Visitor。
+而本章的重点在于 frontend 里面的 IRBuilder Scope 和 Visitor 这三个。
 
 ```c
 ├───frontend
-│       IRBuilder.java
+│       IRBuilder.java  
 │       IREmitter.java
 │       Scope.java
 │       SysYBaseVisitor.java
 │       SysYLexer.java
 │       SysYParser.java
 │       SysYVisitor.java
-│       Visitor.java
+│       Visitor.java      // 重点
 ```
+
+
+
+#### Scope 类
+
+用于判断变量和函数作用范围。
+
+```java
+private final ArrayList<HashMap<String, Value>> tables = new ArrayList<>();
+```
+
+符号表以哈希表实现，每次进入一个 block 会通过 scopeIn 和 scopeOut 来添加删除符号表来调整当前范围，通过 addDecl 向当前符号表添加符号。duplicateDecl 函数判重。
+
+
+
+#### IRBuilder 类
+
+调用以返回指令，以 add 为例
+
+```java
+public BinaryOpInst buildAdd(Value lOp, Value rOp) {
+	。。。
+	getCurBB().insertAtEnd(instAdd);   // 添加指令到当前块
+    return instAdd;
+}
+```
+
+在 visitAddExp 调用
+
+```java
+/**
+     * addExp : mulExp (('+' | '-') mulExp)*
+     */
+    @Override
+    public Void visitAddExp(SysYParser.AddExpContext ctx) {
+        。。。
+        switch (ctx.getChild(2 * i - 1).getText()) 
+                {
+                        case "+" -> lOp = builder.buildAdd(lOp, rOp);   // 返回生成指令
+                        case "-" -> lOp = builder.buildSub(lOp, rOp);
+                        default -> {}
+                }
+        。。。
+    }
+```
+
+
+
+#### Visitor 类
+
+建议阅读顺序：从 visitNumber 函数开始，对照 g4 文件向上规约，一边规约，一边看代码。
+
+但注意：visit 默认是从上到下深度优先访问树的。我们可以在 visitXXX 里面改变他的访问顺序。
+
+
+
+##### 常量折叠（ ConstFolding ）
+
+将常量放进常量表，减少赋值时的运算。
 
 
 

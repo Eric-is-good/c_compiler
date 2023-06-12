@@ -1,11 +1,17 @@
-int aa[6][3] = {{},{1,1,1}};
+int c = 666, d = 777;
 
-int add(int a,int b){return a+b;}
+void foo(int a,int b){
+      int i = 999;
+      while(i<1000){
+          c = a+b;
+          i = i + 1;
+      }
+}
 
 int main() {
-    int a = 1, b = 2;
-    a = getint();
-    add(a,b);
-    float c = 1.0;
-    c = c + aa[5][2];
+       int a = getint();
+       int b = getint();
+       foo(a,b);
+       putint(c);
+       exit(0);
 }

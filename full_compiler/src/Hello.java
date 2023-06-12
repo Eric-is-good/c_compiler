@@ -1,6 +1,4 @@
-import backend.ARMAssemble;
-import backend.MCBuilder;
-import backend.MCEmitter;
+import backend.LLC;
 import frontend.*;
 import ir.Module;
 import org.antlr.v4.runtime.CharStream;
@@ -21,25 +19,18 @@ public class Hello {
         SysYParser parser = new SysYParser(tokenStream);
         ParseTree ast = parser.compUnit(); // Retrieve the parse tree (It's called AST but actually a CST).
 
-        /* Intermediate code generation */
-        // Initialized all the container and tools.
+        /* Traversal the ast to build the IR. */
         Module module = new Module();
         Visitor visitor = new Visitor(module);
-        // Traversal the ast to build the IR.
         visitor.visit(ast);
 
         /* Emit the IR text to an output file for testing. */
-        IREmitter emitter = new IREmitter("test_syys/1.ll");
-        emitter.emit(module, true);
+        IREmitter irEmitter = new IREmitter("test_syys/1.ll");
+        irEmitter.emit(module, true);
 
         /* Target code generation */
-        MCBuilder mcBuilder = MCBuilder.get();
-        mcBuilder.loadModule(module);
-        ARMAssemble target = mcBuilder.codeGeneration();
-
-        /* Write file */
-        MCEmitter mcEmitter = MCEmitter.get();
-        mcEmitter.emitTo(target, "test_syys/1.s");
+        LLC llc = new LLC();
+        llc.emit("test_syys/1.ll", "test_syys/1.s");
     }
 
 }

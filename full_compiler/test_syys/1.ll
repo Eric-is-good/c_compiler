@@ -1,55 +1,54 @@
+declare void @exit(i32)
 declare i32 @getint()
 declare void @putint(i32)
-declare float @getfloat()
-declare void @putfloat(float)
 declare i32 @getch()
 declare void @putch(i32)
-declare i32 @getarray(i32*)
-declare void @putarray(i32, i32*)
-declare i32 @getfarray(float*)
-declare void @putfarray(i32, float*)
-declare void @_sysy_starttime(i32)
-declare void @_sysy_stoptime(i32)
-declare void @memset(i32*, i32, i32)
 
 
-@aa = dso_local global [6 x [3 x i32]] [[3 x i32] zeroinitializer, [3 x i32] [i32 1, i32 1, i32 1], [3 x i32] zeroinitializer, [3 x i32] zeroinitializer, [3 x i32] zeroinitializer, [3 x i32] zeroinitializer]
+@c = dso_local global i32 666
+@d = dso_local global i32 777
 
 
-define dso_local i32 @add(i32 %0, i32 %1) {
-2:										;add_ENTRY
+define dso_local void @foo(i32 %0, i32 %1) {
+2:										;foo_ENTRY
 	%3 = alloca i32
 	%4 = alloca i32
-	store i32 %0, i32* %4
-	store i32 %1, i32* %3
-	%5 = load i32, i32* %4
-	%6 = load i32, i32* %3
-	%7 = add i32 %5, %6
-	ret i32 %7
-8:										;_FOLLOWING_BLK
-	ret i32 0
+	%5 = alloca i32
+	store i32 %0, i32* %5
+	store i32 %1, i32* %4
+	store i32 999, i32* %3
+	br label %6
+6:										;_WHILE_ENTRY
+	%7 = load i32, i32* %3
+	%8 = icmp slt i32 %7, 1000
+	br i1 %8, label %9, label %15
+9:										;_WHILE_BODY
+	%10 = load i32, i32* %5
+	%11 = load i32, i32* %4
+	%12 = add i32 %10, %11
+	store i32 %12, i32* @c
+	%13 = load i32, i32* %3
+	%14 = add i32 %13, 1
+	store i32 %14, i32* %3
+	br label %6
+15:										;_WHILE_EXIT
+	ret void
 }
 
 define dso_local i32 @main() {
 0:										;main_ENTRY
-	%1 = alloca float
+	%1 = alloca i32
 	%2 = alloca i32
-	%3 = alloca i32
-	store i32 1, i32* %3
-	store i32 2, i32* %2
+	%3 = call i32 @getint()
+	store i32 %3, i32* %2
 	%4 = call i32 @getint()
-	store i32 %4, i32* %3
-	%5 = load i32, i32* %3
-	%6 = load i32, i32* %2
-	%7 = call i32 @add(i32 %5, i32 %6)
-	store float 0x3ff0000000000000, float* %1
-	%8 = load float, float* %1
-	%9 = getelementptr [6 x [3 x i32]], [6 x [3 x i32]]* @aa, i32 0, i32 5
-	%10 = getelementptr [3 x i32], [3 x i32]* %9, i32 0, i32 2
-	%11 = load i32, i32* %10
-	%12 = sitofp i32 %11 to float
-	%13 = fadd float %8, %12
-	store float %13, float* %1
+	store i32 %4, i32* %1
+	%5 = load i32, i32* %2
+	%6 = load i32, i32* %1
+	call void @foo(i32 %5, i32 %6)
+	%7 = load i32, i32* @c
+	call void @putint(i32 %7)
+	call void @exit(i32 0)
 	ret i32 0
 }
 

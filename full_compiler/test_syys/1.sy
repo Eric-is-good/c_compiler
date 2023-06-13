@@ -1,17 +1,25 @@
 int c = 666, d = 777;
 
-void foo(int a,int b){
-      int i = 999;
-      while(i<1000){
-          c = a+b;
-          i = i + 1;
-      }
+int foo(int a,int b,int c,int d, int e,int f){
+    return a;
+}
+
+int test_ret(){
+    return 99;
+}
+
+void test_ret_2(){
+    int bb = 123;
 }
 
 int main() {
        int a = getint();
        int b = getint();
-       foo(a,b);
+       int e=99,f,g,h;
+       f = 7;
+       a = foo(a,89,c,f,g,h);
+       b = test_ret();
+       test_ret_2();
        putint(c);
        exit(0);
 }

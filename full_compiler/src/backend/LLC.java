@@ -1,7 +1,6 @@
 package backend;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import java.util.List;
 public class LLC {
     private List<String> ll_prog = new ArrayList<>();
     private int MemSize = 0;
+    private int MaxParamNum = 0;
     public StringBuilder strBuilder = new StringBuilder();
 
     private void Preprocess(String source){
@@ -174,6 +174,13 @@ public class LLC {
 
         }
 
+        // 将最大函数参数个数设为 MaxParamNum
+        for (SimpleFunc func : GlobalFunction) {
+            if (func.paramNum > MaxParamNum) {
+                MaxParamNum = func.paramNum;
+            }
+        }
+
     }
 
     private void BlockManager(){
@@ -215,46 +222,221 @@ public class LLC {
                     String[] tokens2 = func.ll_func.get(start).split(":");
                     block.BlockID = Integer.parseInt(tokens2[0]);
 
-                    List<String> blockContent = new ArrayList<>();
                     for (int j = start; j <= end; j++) {
-                        blockContent.add(func.ll_func.get(j));
+                        block.ll_block.add(func.ll_func.get(j));
                     }
-                    block.ll_block = blockContent;
                     func.Blocks.add(block);
                 }
             }
         }
     }
+
+    private Operand GetOpAsmName(String op){
+        // 如果op最后是,要先去掉
+        if(op.charAt(op.length() - 1) == ','){
+            op = op.substring(0, op.length() - 1);
+        }
+        //去掉前后的空格
+        op = op.trim();
+
+        // 如果是数字，说明是一个立即数
+        if(op.matches("\\d+")){
+            Operand operand = new Operand();
+            operand.CONSTANT = Integer.parseInt(op);
+            return operand;
+        }
+        // 如果以%开头，说明是一个变量，把op去掉%后，剩下的数字就是变量的id
+        else if(op.matches("%.*")){
+                Operand operand = new Operand();
+                operand.OP = (Integer.parseInt(op.substring(1)) + MaxParamNum) * 4;
+                return operand;
+        }
+        // 如果以@开头，说明是一个全局变量，把op去掉@后，剩下的字符串就是变量名
+        else if(op.matches("@.*")){
+            String varName = op.substring(1);
+            Operand operand = new Operand();
+            for(int i = 0; i < GlobalVariable.size(); i++){
+                if(GlobalVariable.get(i).VarName.equals(varName)){
+                    operand.OP = (MemSize - GlobalVariable.size() + i + MaxParamNum) * 4;
+                    return operand;
+                }
+            }
+            System.out.println("Error: Global Variable " + varName + " not found!");
+        }
+
+        System.out.println("Error: Operand " + op + " not found!");
+        return null;
+    }
+
+    private String GetBlockName(int blockID){
+        for(SimpleFunc func : GlobalFunction){
+            if(func.ll_func != null){
+                for (SimpleBlock block : func.Blocks){
+                    if(block.BlockID == blockID){
+                        return block.BlockName;
+                    }
+                }
+            }
+        }
+        System.out.println("Error: Block " + blockID + " not found!");
+        return null;
+    }
+
+
     private void BuildBlocks(){
         for(SimpleFunc func : GlobalFunction){
            if(func.ll_func != null){
-               for(String line: func.ll_func){
-                     if(!line.contains("alloca")){
-                            if(line.contains("store")){
+               for (SimpleBlock block : func.Blocks){
+                   String icmp = null;
 
-                            }else if(line.contains("load")){
+                   for(String line: block.ll_block){
+                       line = line.trim();
 
-                            }else if(line.contains("add")){
+                       if(!line.contains("alloca")){
+                           // 如果以数字开头,包括数字0开头
+                           if(line.charAt(0) >= '0' && line.charAt(0) <= '9'){
 
-                            }else if(line.contains("sub")){
+                           }
+                           else if(line.contains("store")){
+                               // store i32 %12, i32* @c
+                               String[] tokens = line.split(" ");
+                               Operand op1 = GetOpAsmName(tokens[2]);
+                               Operand op2 = GetOpAsmName(tokens[4]);
+                               block.asm_block.add("movl   " + op1 + ", %eax");
+                               block.asm_block.add("movl   %eax, " + op2);
 
-                            }else if(line.contains("br")){
+                           }else if(line.contains("load")){
+                               // %7 = load i32, i32* %3
+                               String[] tokens = line.split(" ");
+                               Operand op1 = GetOpAsmName(tokens[5]);
+                               Operand op2 = GetOpAsmName(tokens[0]);
+                               block.asm_block.add("movl   " + op1 + ", %eax");
+                               block.asm_block.add("movl   %eax, " + op2);
 
-                            }else if(line.contains("icmp")){
+                           }else if(line.contains("add")){
+                               // %12 = add i32 %10, %11
+                               String[] tokens = line.split(" ");
+                               Operand op1 = GetOpAsmName(tokens[tokens.length - 2]);
+                               Operand op2 = GetOpAsmName(tokens[tokens.length - 1]);
+                               Operand op3 = GetOpAsmName(tokens[0]);
+                               block.asm_block.add("movl   " + op1 + ", %eax");
+                               block.asm_block.add("addl   " + op2 + ", %eax");
+                               block.asm_block.add("movl   %eax, " + op3);
 
-                            }else if(line.contains("call")){
+                           }else if(line.contains("sub")){
+                               //%15 = sub i32 %13, %14
+                               String[] tokens = line.split(" ");
+                               Operand op1 = GetOpAsmName(tokens[tokens.length - 2]);
+                               Operand op2 = GetOpAsmName(tokens[tokens.length - 1]);
+                               Operand op3 = GetOpAsmName(tokens[0]);
+                               block.asm_block.add("movl   " + op1 + ", %eax");
+                               block.asm_block.add("subl   " + op2 + ", %eax");
+                               block.asm_block.add("movl   %eax, " + op3);
 
-                            }else if(line.contains("ret")){
+                           }else if(line.contains("br")){
+                               //br label %6
+                               String[] tokens = line.split(" ");
+                                 if(tokens.length == 3) {
+                                     Operand op1 = GetOpAsmName(tokens[2]);
+                                     block.asm_block.add("jmp    " + GetBlockName(op1.OP/4)); // TODO: 这里要改
+                                 }else if (tokens.length == 7){
+                                     // 结合 icmp
+                                     // %36 = icmp eq i32 %34, %35
+                                     //	br i1 %36, label %38, label %37
+                                     String[] icmp_tokens = icmp.split(" ");
+                                     Operand icmp_op1 = GetOpAsmName(icmp_tokens[4]);
+                                     Operand icmp_op2 = GetOpAsmName(icmp_tokens[5]);
+                                     String OP = icmp_tokens[2];
+                                     Operand br_op1 = GetOpAsmName(tokens[4]);   // todo: 这里要改
+                                     Operand br_op2 = GetOpAsmName(tokens[6]);
+                                     block.asm_block.add("movl   " + icmp_op1 + ", %eax");
+                                     block.asm_block.add("cmpl   " + icmp_op2 + ", %eax");
+                                     if(OP.equals("eq")){
+                                         block.asm_block.add("je     " + GetBlockName(br_op1.OP/4));
+                                     }else if(OP.equals("ne")){
+                                         block.asm_block.add("jne    " + GetBlockName(br_op1.OP/4));
+                                     }else if(OP.equals("slt")) {
+                                         block.asm_block.add("jl     " + GetBlockName(br_op1.OP/4));
+                                     }else if(OP.equals("sgt")) {
+                                         block.asm_block.add("jg     " + GetBlockName(br_op1.OP/4));
+                                     }else if(OP.equals("sle")) {
+                                         block.asm_block.add("jle    " + GetBlockName(br_op1.OP/4));
+                                     }else if(OP.equals("sge")) {
+                                         block.asm_block.add("jge    " + GetBlockName(br_op1.OP/4));
+                                     }else {
+                                         System.out.println("Error: icmp " + icmp);
+                                     }
 
-                            }
-                            // 如果以数字开头
-                            else if(line.matches("\\d+.*")){
+                                     block.asm_block.add("jmp    " + GetBlockName(br_op2.OP/4));
 
-                            }
+                                 }else {
+                                     System.out.println("Error: br " + line);
+                                 }
 
-                     }
+                           }else if(line.contains("icmp")){
+                               icmp = line;
+
+                           }else if(line.contains("call")){
+                               // call void @foo(i32 %9, i32 %10, i32 %11, i32 %12, i32 %13, i32 %14)
+                               String FuncName = line.substring(line.indexOf("@") + 1, line.indexOf("("));
+                               int params_heap = 0;
+                               String[] params = line.substring(line.indexOf("(") + 1, line.indexOf(")")).split(" ");
+                               for (int i = 1; i < params.length; i=i+2) {
+                                   Operand param = GetOpAsmName(params[i]);
+                                   block.asm_block.add("movl   " + param + ", %eax");
+                                   block.asm_block.add("movl   %eax, " + params_heap + "(%esp)");
+                                   params_heap += 4;
+                               }
+
+                               block.asm_block.add("call   " + FuncName);
+
+                               String[] tokens = line.split(" ");
+                               // 如果tokens[1] == void
+                               if(tokens[1].equals("void")){
+                                      // do nothing
+                               }
+
+                               // 如果tokens[3] == i32
+                               else if(tokens[3].equals("i32")){
+                                   Operand op = GetOpAsmName(tokens[0]);
+                                   block.asm_block.add("movl   %eax, " + op);
+                               }
+
+                           }else if(line.contains("ret")){
+                                // ret i32 %7
+                                String[] tokens = line.split(" ");
+
+                                // ret void
+                                if(tokens.length == 2){
+                                    block.asm_block.add("retl");
+                                    continue;
+                                }
+
+                                Operand op = GetOpAsmName(tokens[tokens.length - 1]);
+                                block.asm_block.add("movl   " + op + ", %eax");
+                                block.asm_block.add("retl");
+                           }
+                           else {
+
+                           }
+
+                       }
+                   }
                }
+
            }
+        }
+    }
+
+    private void BuildAsm(){
+        for(SimpleFunc func : GlobalFunction){
+            if(func.ll_func != null){
+                for(SimpleBlock block : func.Blocks){
+                    for (String line : block.asm_block){
+                        
+                    }
+                }
+            }
         }
     }
 
@@ -264,6 +446,7 @@ public class LLC {
         FuncManager();
         BlockManager();
         BuildBlocks();
+        BuildAsm();
 
 
 //        PrintLL();

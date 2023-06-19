@@ -159,18 +159,7 @@ public class Visitor extends SysYBaseVisitor<Void> {
                         voidTy, intArgTypeList
                 ), true)
         );
-//        // i32 getfloat()
-//        scope.addDecl("getfloat",
-//                builder.buildFunction("getfloat", FunctionType.getType(
-//                        floatTy , emptyArgTypeList
-//                ), true)
-//        );
-//        // void putfloat(float)
-//        scope.addDecl("putfloat",
-//                builder.buildFunction("putfloat", FunctionType.getType(
-//                        voidTy, floatArgTypeList
-//                ), true)
-//        );
+
         // i32 getch()
         scope.addDecl("getch",
                 builder.buildFunction("getch", FunctionType.getType(
@@ -183,55 +172,7 @@ public class Visitor extends SysYBaseVisitor<Void> {
                         voidTy, intArgTypeList
                 ), true)
         );
-//        // i32 getarray(i32*)
-//        scope.addDecl("getarray",
-//                builder.buildFunction("getarray", FunctionType.getType(
-//                        i32Ty, new ArrayList<>() {{add(ptrI32Ty);}}
-//                ), true)
-//        );
-//        // void putarray(i32, i32*)
-//        scope.addDecl("putarray",
-//                builder.buildFunction("putarray", FunctionType.getType(
-//                        voidTy, new ArrayList<>() {{add(i32Ty); add(ptrI32Ty);}}
-//                ), true)
-//        );
-//
-//        // i32 getfarray(float*)
-//        scope.addDecl("getfarray",
-//                builder.buildFunction("getfarray", FunctionType.getType(
-//                        i32Ty, new ArrayList<>() {{add(ptrFloatTy);}}
-//                ), true)
-//        );
-//        // void putfarray(i32, float*)
-//        scope.addDecl("putfarray",
-//                builder.buildFunction("putfarray", FunctionType.getType(
-//                        voidTy, new ArrayList<>() {{add(i32Ty); add(ptrFloatTy);}}
-//                ), true)
-//        );
-//        // void starttime() -> _sysy_starttime(i32)
-//        // See special case in visitFcall.
-//        scope.addDecl("starttime",
-//                builder.buildFunction("_sysy_starttime", FunctionType.getType(
-//                        voidTy, intArgTypeList
-//                ), true)
-//        );
-//        // void stoptime() -> _sysy_stoptime(i32)
-//        // See special case in visitFcall.
-//        scope.addDecl("stoptime",
-//                builder.buildFunction("_sysy_stoptime", FunctionType.getType(
-//                        voidTy, intArgTypeList
-//                ), true)
-//        );
-//        // void* memset(void* str, int c, size_t n)
-//        scope.addDecl("memset",
-//                builder.buildFunction("memset", FunctionType.getType(
-//                        voidTy,  new ArrayList<>() {{add(ptrI32Ty); add(i32Ty); add(i32Ty);}}
-//                ), true));
-////        // void* memcpy(void* dest, const void* src, size_t num)
-////        scope.addDecl("memcpy",
-////                builder.buildFunction("memcpy", FunctionType.getType(
-////                        ptrVoidTy,  new ArrayList<>() {{add(ptrVoidTy); add(ptrVoidTy); add(i32Ty);}}
-////                ), true));
+
     }
 
 

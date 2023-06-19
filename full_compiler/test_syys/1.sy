@@ -1,25 +1,29 @@
-int c = 666, d = 777;
-
-int foo(int a,int b,int c,int d, int e,int f){
-    return a;
+void han(int n, int from, int to, int temp)
+{
+    if (n == 1)
+    {
+        putch(from);
+        putch(45);
+        putch(62);
+        putch(to);
+        putch(10);
+    }
+    else
+    {
+        han(n - 1, from, temp, to);
+        putch(from);
+        putch(45);
+        putch(62);
+        putch(to);
+        putch(10);
+        han(n - 1, temp, to, from);
+    }
 }
 
-int test_ret(){
-    return 99;
-}
-
-void test_ret_2(){
-    int bb = 123;
-}
-
-int main() {
-       int a = getint();
-       int b = getint();
-       int e=99,f,g,h;
-       f = 7;
-       a = foo(a,89,c,f,g,h);
-       b = test_ret();
-       test_ret_2();
-       putint(c);
-       exit(0);
+int main()
+{
+    int n = getint();
+    han(n, 65, 66, 67);
+    return 0;
+    exit(0);
 }

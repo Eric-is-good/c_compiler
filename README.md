@@ -6,11 +6,31 @@
 
 该**比赛**为 [全国大学生计算机系统能力大赛 ](https://compiler.educg.net)的系统编译方向，由华为主办
 
-由于比赛可以用 java ~~(可惜不能用 python)~~，所以就选择了 java，这样可以专注于指令优化
+由于比赛可以用 java ~~(可惜不能用 python)~~，所以就选择了 java
 
-我们主要目的是学习，~~不是为了拿奖~~，因为我们到处借鉴别人的代码......    @_@
+我们主要目的是学习，~~不是为了拿奖~~，我们到处借鉴别人的代码......    @_@
+
+**讲解视频** 我也上传到了 [B站](https://space.bilibili.com/179484527) 空间，欢迎大家观看。
 
 
+
+经过商量，老师找了个更适合我的方向，就不参加比赛了。
+
+具体是我写过一个 [操作系统](https://github.com/Eric-is-good/eric_os)（x86 I32），于是我打算给我的操作系统写一个编译器，即高级语言sy 翻译为 **类x86 I32汇编**，因为我的操作系统 寄存器使用 和 函数栈帧使用 和传统x86有区别。sy 语言是比赛需要设计的语言，他的定义我们放在sy文件夹下，我们实现了这个语言除了浮点数和数组以外的所有功能（因为我的操作系统不支持浮点数）。
+
+我们的架构如下
+
+![](https://github.com/Eric-is-good/c_compiler/blob/main/imgs/2.png)
+
+我们跳过了 LLVM 的优化，在生成 LLVM IR 之后就直接翻译成 ASM，LLVM IR 的优化有现成的工具 llvm-opt，我们要做的就是前端后端，这应该是实现一门自定义语言最具有性价比的方式。
+
+
+
+这是我们结合了操作系统的架构
+
+![](https://github.com/Eric-is-good/c_compiler/blob/main/imgs/3.png)
+
+我们的程序使用 sy 语言，结合这里实现的编译器，完成程序在操作系统上安装运行。
 
 
 
@@ -22,7 +42,7 @@
 
 比赛官方也有开源代码学习，我们也可以看看他们的。
 
-如果你想**直接进入比赛相关内容**，建议从 class 4 开始看。
+如果你想**直接进入 llvm 相关内容**，建议从 class 4 开始看。
 
 
 
@@ -255,7 +275,7 @@ int main(int args[]){
 
 
 
-### class 6  语义分析  和  生成中间代码
+### class 6  语义分析  和  生成中间代码 LLVM IR
 
 比赛需要实现一个语言 SysY2022 ，文档在 class_6/SysY2022 下。
 
@@ -370,4 +390,5 @@ public BinaryOpInst buildAdd(Value lOp, Value rOp) {
 
 
 
-### class 7  Mem 2 Reg
+### class 7  backend，将 LLVM IR 翻译成 ASM
+

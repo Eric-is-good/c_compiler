@@ -392,3 +392,85 @@ public BinaryOpInst buildAdd(Value lOp, Value rOp) {
 
 ### class 7  backend，将 LLVM IR 翻译成 ASM
 
+后端分为两个部分，一个是寄存器与内存分配策略（Mem To Reg），另一个是函数栈帧的策略。
+
+![](https://github.com/Eric-is-good/c_compiler/blob/main/imgs/4.png)
+
+
+
+寄存器与内存分配
+
+```c
+store i32 %0, i32* %4
+```
+
+我们只使用 寄存器 eax 和 ecx（仅在除法时）。
+
+我们为每一个 llvm ir 里面的 %i 分配一个内存，即图中的 var i，地址为 esp + 4 *（i + m）
+
+所有指令的中转使用 eax，例如上面这一句翻译为
+
+```c
+movl	0(%esp), %eax
+movl	%eax, 4(%esp)
+```
+
+
+
+函数栈帧
+
+
+
+第一步是传参。
+
+上图展示了传参策略，以 func 1 调用 func 2 为示例。
+
+```c
+func1(){
+    ......
+    func2(param 0,param 1,....,param n1)
+    func3(param 0,param 1,....,param n2)
+    ......
+}
+```
+
+其中，m = max（n1，n2，.......，nk），即所有在 func1 被调用函数的最大传参数。
+
+llvm ir 代码为 
+
+```c
+call i32 @func2(i32 %0, i32 %1，......，i32 %n1)  
+```
+
+我们仅使用堆栈传参，将参数从低到高存到 param 区，param 区则按照最大传参量设计，这样，我们就完成了使用堆栈传参。
+
+执行 call 汇编时，会存储 func 1 的地址。（绿色区域）
+
+如果 func 2 有返回值，我们需要 push exa，然后用 exa 来接收返回值。（紫色区域）
+
+
+
+第二步是栈帧的开辟。
+
+MemSize 的大小为 func 2 的 var 大小与 param 大小之和。var 大小为 max（%i），即 func 2 的 llvm ir 中最大的 %i 中的 i 大小。param 大小为 max（n1，n2，.......，nk），即所有在 func 2 被调用函数的最大传参数，与上文的 m 一致。
+
+```c
+subl	4 * m_func2, %esp
+```
+
+如何访问 func 1 传给 func 2 的函数参数呢？
+
+很简单 ，esp + MemSize + （4）+  4 +  i * 4 即为第 i 个参数的位置。
+
+第一个 4 为 exa 的占用大小，加了括号表示当且仅当 func 2 有返回值时才会 push exa。
+
+第二个 4 为 func 1 的地址占用空间，在 call 时会自动存储。
+
+总而言之，即图中的 func2 esp + 蓝色区域与橙色区域 + （紫色区域）+ 绿色区域 +  func 1 的部分蓝色区域抵达 param j。
+
+最后，结束调用返回到 func 1 时，需要将 esp 归位到 func 1 的 esp ，即 
+
+```c
+addl	4 * m_func2, %esp
+```
+
